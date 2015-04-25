@@ -20,7 +20,6 @@ RTC_DS1307 rtc;
 Adafruit_BMP085_Unified bmp = Adafruit_BMP085_Unified(10085);
 Adafruit_HTU21DF htu = Adafruit_HTU21DF();
 
-const int maxRows = 10000;
 const int chipSelect = 10;
 const int buttonPin = 2;
 const int ledPin =  5;
@@ -34,47 +33,21 @@ long lastDebounceTime = 0;
 long debounceDelay = 40;  // the debounce time; increase if the output flickers
 
 File dataFile;
-int rowCount = 0;
 
 void setup() {
   Serial.begin(9600);
-
-  Serial.print("Initializing SD card...");
+  Wire.begin();
   
   pinMode(10, OUTPUT);
   pinMode(ledPin, OUTPUT);
   pinMode(buttonPin, INPUT);
   
   digitalWrite(ledPin, LOW);
-
-  if (!SD.begin(chipSelect)) {
-    Serial.println("Card failed, or not present!");
-    return;
-  }
-  Serial.println("card initialized.");
   
-  Wire.begin();
-  
-  rtc.begin();
-  
-  if (!rtc.isrunning()) {
-    Serial.println("RTC is NOT running!");
-    return;
-  }
-  Serial.println("RTC is running.");
-  
-  if(!bmp.begin())
-  {
-    Serial.print("No BMP180 detected!");
-    return;
-  }
-  Serial.println("BMP180 detected.");
-  
-  if (!htu.begin()) {
-    Serial.println("No HTU21D-F detected!");
-    return;
-  }
-  Serial.println("HTU21D-F detected.");
+  initializeSdCard();
+  initializeRtc();
+  initializePressureSensor();
+  initializeHumiditySensor();
 }
 
 void loop() {
@@ -100,19 +73,44 @@ void loop() {
   
   if (logging) {
     logData();
-    rowCount++;
   } else {
     stopLogging();
-    rowCount = 0;
   }
-  
-  if (rowCount == maxRows)
+}
+
+void initializeSdCard(void) {
+  Serial.print("Initializing SD card...");
+  if (!SD.begin(chipSelect)) {
+    Serial.println("Card failed, or not present!");
+    return;
+  }
+  Serial.println("card initialized.");  
+}
+
+void initializeRtc(void) {
+  rtc.begin();
+  if (!rtc.isrunning()) {
+    Serial.println("RTC is NOT running!");
+    return;
+  }
+  Serial.println("RTC is running.");
+}
+
+void initializePressureSensor(void) {
+  if(!bmp.begin())
   {
-    stopLogging();
-    rowCount = 0;
-    logData();
-    rowCount++;
+    Serial.print("No BMP180 detected!");
+    return;
   }
+  Serial.println("BMP180 detected."); 
+}
+
+void initializeHumiditySensor(void) {
+  if (!htu.begin()) {
+    Serial.println("No HTU21D-F detected!");
+    return;
+  }
+  Serial.println("HTU21D-F detected.");
 }
 
 void createFile(void) {
