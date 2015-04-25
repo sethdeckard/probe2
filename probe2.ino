@@ -30,7 +30,7 @@ int lastButtonState = LOW;
 bool logging = false;
 
 long lastDebounceTime = 0;
-long debounceDelay = 10;  // the debounce time; increase if the output flickers
+long debounceDelay = 50;  // the debounce time; increase if the output flickers
 
 File dataFile;
 
@@ -115,28 +115,15 @@ void initializeHumiditySensor(void) {
 
 void createFile(void) {
   DateTime now = rtc.now();
-  String month = padZero(String(now.month(), DEC));
-  String day = padZero(String(now.day(), DEC));
-  String hour = padZero(String(now.hour(), DEC));
-  String minute = padZero(String(now.minute(), DEC));
-  String fileName = month + day + hour + minute + ".csv";
-  
-  int len = fileName.length() + 1;
-  char buf[len];
-  fileName.toCharArray(buf, len);
-  
-  Serial.println(buf);
-  
-  dataFile = SD.open(buf, O_CREAT | O_APPEND | O_WRITE);
-}
+  char fileName[13];
+  sprintf(fileName, "%02d%02d%02d%02d.csv",
+   now.month(), now.day(),
+   now.hour(), now.minute()
+  );
 
-String padZero(String string) 
-{
-  if (string.length() == 1) {
-    return "0" + string;
-  } else {
-    return string;
-  }  
+  Serial.println(fileName);
+  
+  dataFile = SD.open(fileName, O_CREAT | O_APPEND | O_WRITE);
 }
 
 void readPressure(void) {
@@ -213,7 +200,10 @@ void logData(void) {
   );
   
   char row[64];
-  sprintf(row, "%s,%s,%s,%s,%s", dateTimeString, temp1String, pressureString, temp2String, humidityString);
+  sprintf(row, "%s,%s,%s,%s,%s",
+   dateTimeString, temp1String, pressureString, 
+   temp2String, humidityString
+  );
   
   Serial.println(row);
   
