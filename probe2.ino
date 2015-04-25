@@ -177,9 +177,6 @@ void logData(void) {
   }
   
   digitalWrite(ledPin, HIGH);
-    
-  DateTime now = rtc.now();
-  String time = String(now.unixtime(), DEC);
   
   float temp1;
   float pressure;
@@ -196,20 +193,27 @@ void logData(void) {
   float temp2 = htu.readTemperature();
   float humidity = htu.readHumidity();
   
-  char temp1_s[6];
-  dtostrf(temp1, 3, 2, temp1_s);
+  char temp1String[6];
+  dtostrf(temp1, 3, 2, temp1String);
   
-  char pressure_s[8];
-  dtostrf(pressure, 4, 2, pressure_s);
+  char pressureString[8];
+  dtostrf(pressure, 4, 2, pressureString);
   
-  char temp2_s[6];
-  dtostrf(temp2, 3, 2, temp2_s);
+  char temp2String[6];
+  dtostrf(temp2, 3, 2, temp2String);
   
-  char humidity_s[6];
-  dtostrf(humidity, 3, 2, humidity_s);
+  char humidityString[6];
+  dtostrf(humidity, 3, 2, humidityString);
+  
+  DateTime now = rtc.now();
+  char dateTimeString[24];
+  sprintf(dateTimeString, "%04d-%02d-%02d %02d:%02d:%02d",
+   now.year(), now.month(), now.day(),
+   now.hour(), now.minute(), now.second()
+  );
   
   char row[64];
-  sprintf(row, "%s,%s,%s,%s,%s", time.c_str(), temp1_s, pressure_s, temp2_s, humidity_s);
+  sprintf(row, "%s,%s,%s,%s,%s", dateTimeString, temp1String, pressureString, temp2String, humidityString);
   
   Serial.println(row);
   
