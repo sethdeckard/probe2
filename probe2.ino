@@ -63,7 +63,7 @@ void loop() {
       buttonState = reading;
 
       if (buttonState == HIGH) {
-        Serial.println("button pressed");
+        Serial.println(F("button pressed"));
         logging = !logging;
       }
     }
@@ -79,38 +79,38 @@ void loop() {
 }
 
 void initializeSdCard(void) {
-  Serial.print("Initializing SD card...");
+  Serial.print(F("Initializing SD card..."));
   if (!SD.begin(chipSelect)) {
-    Serial.println("Card failed, or not present!");
+    Serial.println(F("Card failed, or not present!"));
     return;
   }
-  Serial.println("card initialized.");  
+  Serial.println(F("card initialized."));  
 }
 
 void initializeRtc(void) {
   rtc.begin();
   if (!rtc.isrunning()) {
-    Serial.println("RTC is NOT running!");
+    Serial.println(F("RTC is NOT running!"));
     return;
   }
-  Serial.println("RTC is running.");
+  Serial.println(F("RTC is running."));
 }
 
 void initializePressureSensor(void) {
   if(!bmp.begin())
   {
-    Serial.print("No BMP180 detected!");
+    Serial.print(F("No BMP180 detected!"));
     return;
   }
-  Serial.println("BMP180 detected."); 
+  Serial.println(F("BMP180 detected.")); 
 }
 
 void initializeHumiditySensor(void) {
   if (!htu.begin()) {
-    Serial.println("No HTU21D-F detected!");
+    Serial.println(F("No HTU21D-F detected!"));
     return;
   }
-  Serial.println("HTU21D-F detected.");
+  Serial.println(F("HTU21D-F detected."));
 }
 
 void createFile(void) {
@@ -145,30 +145,30 @@ void readPressure(void) {
 
   if (event.pressure)
   {
-    Serial.print("Pressure:    ");
+    Serial.print(F("Pressure:    "));
     Serial.print(event.pressure);
-    Serial.println(" hPa");
+    Serial.println(F(" hPa"));
     
     float temperature;
     bmp.getTemperature(&temperature);
-    Serial.print("Temperature (BMP180): ");
+    Serial.print(F("Temperature (BMP180): "));
     Serial.print(temperature);
-    Serial.println(" C");
+    Serial.println(F(" C"));
   }
   else
   {
-    Serial.println("Sensor error");
+    Serial.println(F("Sensor error"));
   }
 }
 
 void readHumidity(void) {
-  Serial.print("Temperature (HTU21D-F): ");
+  Serial.print(F("Temperature (HTU21D-F): "));
   Serial.print(htu.readTemperature());
-  Serial.println(" C");
+  Serial.println(F(" C"));
   
-  Serial.print("Humidity: ");
+  Serial.print(F("Humidity: "));
   Serial.print(htu.readHumidity());
-  Serial.println(" %");
+  Serial.println(F(" %"));
 }
 
 void logData(void) {
@@ -196,7 +196,20 @@ void logData(void) {
   float temp2 = htu.readTemperature();
   float humidity = htu.readHumidity();
   
-  String row = time + "," + temp1 + "," + pressure+ "," + temp2+ "," + humidity;
+  char temp1_s[6];
+  dtostrf(temp1, 3, 2, temp1_s);
+  
+  char pressure_s[8];
+  dtostrf(pressure, 4, 2, pressure_s);
+  
+  char temp2_s[6];
+  dtostrf(temp2, 3, 2, temp2_s);
+  
+  char humidity_s[6];
+  dtostrf(humidity, 3, 2, humidity_s);
+  
+  char row[64];
+  sprintf(row, "%s,%s,%s,%s,%s", time.c_str(), temp1_s, pressure_s, temp2_s, humidity_s);
   
   Serial.println(row);
   
@@ -206,7 +219,7 @@ void logData(void) {
   }
   else 
   {
-    Serial.println("Can not write to data file");
+    Serial.println(F("Can not write to data file"));
   }  
 }
 
