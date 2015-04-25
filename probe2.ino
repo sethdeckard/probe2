@@ -30,7 +30,7 @@ int lastButtonState = LOW;
 bool logging = false;
 
 long lastDebounceTime = 0;
-long debounceDelay = 40;  // the debounce time; increase if the output flickers
+long debounceDelay = 10;  // the debounce time; increase if the output flickers
 
 File dataFile;
 
