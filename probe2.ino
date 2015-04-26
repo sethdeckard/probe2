@@ -79,12 +79,11 @@ void loop() {
 }
 
 void initializeSdCard(void) {
-  Serial.print(F("Initializing SD card..."));
   if (!SD.begin(chipSelect)) {
     Serial.println(F("Card failed, or not present!"));
     return;
   }
-  Serial.println(F("card initialized."));  
+  Serial.println(F("Card initialized."));  
 }
 
 void initializeRtc(void) {
