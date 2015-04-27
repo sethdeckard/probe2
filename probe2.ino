@@ -72,7 +72,7 @@ void loop() {
   lastButtonState = reading;
   
   if (logging) {
-    logData();
+    logMeasurements();
   } else {
     stopLogging();
   }
@@ -157,7 +157,7 @@ void readHumidity(void) {
   Serial.println(F(" %"));
 }
 
-void logData(void) {
+void logMeasurements(void) {
   if (!dataFile) {
    createFile(); 
   }
@@ -179,13 +179,13 @@ void logData(void) {
   float temp2 = htu.readTemperature();
   float humidity = htu.readHumidity();
   
-  char temp1String[6];
+  char temp1String[8];
   dtostrf(temp1, 3, 2, temp1String);
   
-  char pressureString[8];
+  char pressureString[10];
   dtostrf(pressure, 4, 2, pressureString);
   
-  char temp2String[6];
+  char temp2String[8];
   dtostrf(temp2, 3, 2, temp2String);
   
   char humidityString[6];
@@ -217,7 +217,6 @@ void logData(void) {
 }
 
 void stopLogging(void) {
-
   digitalWrite(ledPin, LOW);
   
   if (dataFile) {
