@@ -168,8 +168,6 @@ void logMeasurements(void) {
    createFile(); 
   }
   
-  //digitalWrite(ledPin, LOW);
-  
   float temp1;
   float pressure;
   
