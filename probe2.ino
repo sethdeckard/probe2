@@ -31,6 +31,8 @@ bool logging = false;
 
 long lastDebounceTime = 0;
 long debounceDelay = 50;  // the debounce time; increase if the output flickers
+long lastBlinkTime = 0; 
+long blinkDelay = 2000;
 
 File dataFile;
 
@@ -55,10 +57,14 @@ void loop() {
   
   if (reading != lastButtonState) {
     lastDebounceTime = millis();
-  }  
+  }
+  
+  if ((millis() - lastBlinkTime) > blinkDelay) {
+     digitalWrite(ledPin, LOW);
+     lastBlinkTime = millis();
+  }
   
   if ((millis() - lastDebounceTime) > debounceDelay) {
-
     if (reading != buttonState) {
       buttonState = reading;
 
@@ -162,7 +168,7 @@ void logMeasurements(void) {
    createFile(); 
   }
   
-  digitalWrite(ledPin, HIGH);
+  //digitalWrite(ledPin, LOW);
   
   float temp1;
   float pressure;
@@ -209,11 +215,13 @@ void logMeasurements(void) {
   if (dataFile) 
   {
     dataFile.println(row);
+    digitalWrite(ledPin, HIGH);
   }
   else 
   {
     Serial.println(F("Can not write to data file"));
-  }  
+    digitalWrite(ledPin, LOW);
+  }
 }
 
 void stopLogging(void) {
