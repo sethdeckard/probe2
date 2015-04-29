@@ -23,8 +23,8 @@ Adafruit_HTU21DF htu = Adafruit_HTU21DF();
 const int chipSelect = 10;
 const int buttonPin = 2;
 const int ledPin =  5;
-const long debounceDelay = 50;  // the debounce time; increase if the output flickers
-const long blinkDelay = 2000;
+const int debounceDelay = 50;
+const int blinkDelay = 2000;
 const int syncDelay = 30000;
 
 int buttonState = 0;
@@ -68,7 +68,6 @@ void loop() {
       buttonState = reading;
 
       if (buttonState == HIGH) {
-        Serial.println(F("button pressed"));
         logging = !logging;
       }
     }
@@ -102,8 +101,7 @@ void initializeRtc(void) {
 }
 
 void initializePressureSensor(void) {
-  if(!bmp.begin())
-  {
+  if(!bmp.begin()) {
     Serial.print(F("No BMP180 detected!"));
     return;
   }
@@ -136,55 +134,48 @@ void logMeasurements() {
    createFile(); 
   }
   
-  float temp1;
-  float pressure;
+  char tempPressureText[8];
+  char pressureText[10];
   
   sensors_event_t event;
   bmp.getEvent(&event);
   
-  if (event.pressure)
-  {
-    pressure = event.pressure;
-    bmp.getTemperature(&temp1);
+  if (event.pressure) {
+    float pressure = event.pressure;
+    dtostrf(pressure, 4, 2, pressureText);
+    
+    float tempPressure;
+    bmp.getTemperature(&tempPressure);
+    dtostrf(tempPressure, 3, 2, tempPressureText);
   }
   
-  float temp2 = htu.readTemperature();
   float humidity = htu.readHumidity();
+  char humidityText[6];
+  dtostrf(humidity, 3, 2, humidityText);
   
-  char temp1String[8];
-  dtostrf(temp1, 3, 2, temp1String);
-  
-  char pressureString[10];
-  dtostrf(pressure, 4, 2, pressureString);
-  
-  char temp2String[8];
-  dtostrf(temp2, 3, 2, temp2String);
-  
-  char humidityString[6];
-  dtostrf(humidity, 3, 2, humidityString);
+  float tempHumidity = htu.readTemperature();
+  char tempHumidityText[8];
+  dtostrf(tempHumidity, 3, 2, tempHumidityText);
   
   DateTime now = rtc.now();
-  char dateTimeString[24];
-  sprintf(dateTimeString, "%04d-%02d-%02d %02d:%02d:%02d",
+  char dateTimeText[24];
+  sprintf(dateTimeText, "%04d-%02d-%02d %02d:%02d:%02d",
    now.year(), now.month(), now.day(),
    now.hour(), now.minute(), now.second()
   );
   
   char row[64];
   sprintf(row, "%s,%s,%s,%s,%s",
-   dateTimeString, temp1String, pressureString, 
-   temp2String, humidityString
+   dateTimeText, tempPressureText, pressureText, 
+   tempHumidityText, humidityText
   );
   
-  //Serial.println(row);
+  Serial.println(row);
   
-  if (dataFile) 
-  {
+  if (dataFile) {
     dataFile.println(row);
     digitalWrite(ledPin, HIGH);
-  }
-  else 
-  {
+  } else {
     Serial.println(F("Can not write to data file"));
     digitalWrite(ledPin, LOW);
   }
@@ -201,9 +192,8 @@ void stopLogging(void) {
 }
 
 void syncDataFile(void) {
-  if ((millis() - lastSyncTime) > syncDelay)
-  {
-    Serial.println("flushing written data");
+  if ((millis() - lastSyncTime) > syncDelay) {
+    Serial.println(F("syncing written data"));
     dataFile.flush();
     lastSyncTime = millis();
   }  
