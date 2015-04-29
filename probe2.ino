@@ -23,21 +23,20 @@ Adafruit_HTU21DF htu = Adafruit_HTU21DF();
 const int chipSelect = 10;
 const int buttonPin = 2;
 const int ledPin =  5;
+const long debounceDelay = 50;  // the debounce time; increase if the output flickers
+const long blinkDelay = 2000;
+const int syncDelay = 30000;
 
 int buttonState = 0;
 int lastButtonState = LOW;
-
-bool logging = false;
-
 long lastDebounceTime = 0;
-long debounceDelay = 50;  // the debounce time; increase if the output flickers
 long lastBlinkTime = 0; 
-long blinkDelay = 2000;
-
+long lastSyncTime = 0;
+bool logging = false;
 File dataFile;
 
 void setup() {
-  Serial.begin(9600);
+  Serial.begin(115200);
   Wire.begin();
   
   pinMode(10, OUTPUT);
@@ -79,6 +78,7 @@ void loop() {
   
   if (logging) {
     logMeasurements();
+    syncDataFile();
   } else {
     stopLogging();
   }
@@ -131,39 +131,7 @@ void createFile(void) {
   dataFile = SD.open(fileName, O_CREAT | O_APPEND | O_WRITE);
 }
 
-void readPressure(void) {
-  sensors_event_t event;
-  bmp.getEvent(&event);
-
-  if (event.pressure)
-  {
-    Serial.print(F("Pressure:    "));
-    Serial.print(event.pressure);
-    Serial.println(F(" hPa"));
-    
-    float temperature;
-    bmp.getTemperature(&temperature);
-    Serial.print(F("Temperature (BMP180): "));
-    Serial.print(temperature);
-    Serial.println(F(" C"));
-  }
-  else
-  {
-    Serial.println(F("Sensor error"));
-  }
-}
-
-void readHumidity(void) {
-  Serial.print(F("Temperature (HTU21D-F): "));
-  Serial.print(htu.readTemperature());
-  Serial.println(F(" C"));
-  
-  Serial.print(F("Humidity: "));
-  Serial.print(htu.readHumidity());
-  Serial.println(F(" %"));
-}
-
-void logMeasurements(void) {
+void logMeasurements() {
   if (!dataFile) {
    createFile(); 
   }
@@ -208,7 +176,7 @@ void logMeasurements(void) {
    temp2String, humidityString
   );
   
-  Serial.println(row);
+  //Serial.println(row);
   
   if (dataFile) 
   {
@@ -228,5 +196,16 @@ void stopLogging(void) {
   if (dataFile) {
     dataFile.close();
   }
+  
+  lastSyncTime = 0;
+}
+
+void syncDataFile(void) {
+  if ((millis() - lastSyncTime) > syncDelay)
+  {
+    Serial.println("flushing written data");
+    dataFile.flush();
+    lastSyncTime = millis();
+  }  
 }
 
